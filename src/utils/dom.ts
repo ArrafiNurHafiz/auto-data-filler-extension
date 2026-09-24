@@ -1,7 +1,28 @@
-import { SelectorType, ActionType, PickedElementInfo } from '../types';
+import type { SelectorType, ActionType, PickedElementInfo } from '../types';
 
 /**
- * Finds an element in the DOM using a flexible multi-strategy approach.
+ * Recursively searches for an element matching a selector across document and Open Shadow Roots.
+ */
+export function querySelectorDeep(selector: string, root: Document | Element | ShadowRoot = document): HTMLElement | null {
+  try {
+    const direct = root.querySelector(selector);
+    if (direct) return direct as HTMLElement;
+  } catch {}
+
+  const allNodes = root.querySelectorAll('*');
+  for (let i = 0; i < allNodes.length; i++) {
+    const node = allNodes[i];
+    if (node.shadowRoot) {
+      const found = querySelectorDeep(selector, node.shadowRoot);
+      if (found) return found;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Finds an element in the DOM using a flexible multi-strategy approach with Shadow DOM support.
  */
 export function findElement(selectorType: SelectorType, selectorValue: string): HTMLElement | null {
   if (!selectorValue || !selectorValue.trim()) return null;
@@ -11,13 +32,19 @@ export function findElement(selectorType: SelectorType, selectorValue: string): 
     switch (selectorType) {
       case 'id': {
         const cleanId = val.startsWith('#') ? val.substring(1) : val;
-        return document.getElementById(cleanId);
+        const direct = document.getElementById(cleanId);
+        if (direct) return direct;
+        return querySelectorDeep(`#${CSS.escape(cleanId)}`);
       }
       case 'name': {
-        return document.querySelector(`[name="${CSS.escape(val)}"]`) as HTMLElement;
+        const direct = document.querySelector(`[name="${CSS.escape(val)}"]`) as HTMLElement;
+        if (direct) return direct;
+        return querySelectorDeep(`[name="${CSS.escape(val)}"]`);
       }
       case 'placeholder': {
-        return document.querySelector(`[placeholder*="${CSS.escape(val)}" i]`) as HTMLElement;
+        const direct = document.querySelector(`[placeholder*="${CSS.escape(val)}" i]`) as HTMLElement;
+        if (direct) return direct;
+        return querySelectorDeep(`[placeholder*="${CSS.escape(val)}" i]`);
       }
       case 'label': {
         // 1. Check label with 'for' attribute matching an ID
@@ -26,7 +53,7 @@ export function findElement(selectorType: SelectorType, selectorValue: string): 
         if (matchedLabel) {
           const forId = matchedLabel.getAttribute('for');
           if (forId) {
-            const target = document.getElementById(forId);
+            const target = document.getElementById(forId) || querySelectorDeep(`#${CSS.escape(forId)}`);
             if (target) return target;
           }
           // Check nested input inside label
@@ -34,7 +61,9 @@ export function findElement(selectorType: SelectorType, selectorValue: string): 
           if (innerInput) return innerInput as HTMLElement;
         }
         // Fallback: aria-label
-        return document.querySelector(`[aria-label*="${CSS.escape(val)}" i]`) as HTMLElement;
+        const ariaDirect = document.querySelector(`[aria-label*="${CSS.escape(val)}" i]`) as HTMLElement;
+        if (ariaDirect) return ariaDirect;
+        return querySelectorDeep(`[aria-label*="${CSS.escape(val)}" i]`);
       }
       case 'text': {
         // Search buttons, links, or elements containing exact/partial text
@@ -54,13 +83,16 @@ export function findElement(selectorType: SelectorType, selectorValue: string): 
           if (el) return el;
         } catch {}
 
+        const deep = querySelectorDeep(val);
+        if (deep) return deep;
+
         // Smart fallback if val is plain text without CSS symbols
         if (!val.includes('#') && !val.includes('.') && !val.includes('[') && !val.includes(' ') && !val.includes('>')) {
-          const byId = document.getElementById(val);
+          const byId = document.getElementById(val) || querySelectorDeep(`#${CSS.escape(val)}`);
           if (byId) return byId;
-          const byName = document.querySelector(`[name="${CSS.escape(val)}"]`) as HTMLElement;
+          const byName = document.querySelector(`[name="${CSS.escape(val)}"]`) as HTMLElement || querySelectorDeep(`[name="${CSS.escape(val)}"]`);
           if (byName) return byName;
-          const byPh = document.querySelector(`[placeholder*="${CSS.escape(val)}" i]`) as HTMLElement;
+          const byPh = document.querySelector(`[placeholder*="${CSS.escape(val)}" i]`) as HTMLElement || querySelectorDeep(`[placeholder*="${CSS.escape(val)}" i]`);
           if (byPh) return byPh;
         }
         return null;
@@ -135,10 +167,22 @@ export async function waitForElement(
 }
 
 /**
- * Simulates human-like typing and dispatches standard DOM events to trigger React/Vue/Angular state listeners.
+ * Simulates human-like typing and dispatches comprehensive DOM events to trigger React/Vue/Angular state listeners
+ * and bypass strict input masks/anti-bot checks.
  */
-export function simulateInput(element: HTMLElement, value: string, clearFirst = true) {
+export async function simulateInput(
+  element: HTMLElement,
+  value: string,
+  clearFirst = true,
+  humanize = true
+) {
   element.focus();
+  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // Simulate pointer interactions for strict frameworks
+  element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, composed: true }));
+  element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, composed: true }));
+  element.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
 
   if (element.getAttribute('contenteditable') === 'true') {
     if (clearFirst) element.textContent = '';
@@ -157,27 +201,59 @@ export function simulateInput(element: HTMLElement, value: string, clearFirst = 
     inputEl.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
-  // React 16+ prototype setter bypass
-  const prototype = Object.getPrototypeOf(inputEl);
-  const nativeSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+  // If humanize is on and value is reasonable length, simulate keystroke stream with micro-jitter
+  if (humanize && value.length > 0 && value.length <= 150) {
+    let currentVal = '';
+    for (let i = 0; i < value.length; i++) {
+      const char = value[i];
+      currentVal += char;
 
-  if (nativeSetter) {
-    nativeSetter.call(inputEl, value);
+      inputEl.dispatchEvent(
+        new KeyboardEvent('keydown', { key: char, code: `Key${char.toUpperCase()}`, bubbles: true, composed: true })
+      );
+      inputEl.dispatchEvent(
+        new KeyboardEvent('keypress', { key: char, code: `Key${char.toUpperCase()}`, bubbles: true, composed: true })
+      );
+
+      // React 16+ prototype setter bypass
+      const prototype = Object.getPrototypeOf(inputEl);
+      const nativeSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+      if (nativeSetter) {
+        nativeSetter.call(inputEl, currentVal);
+      } else {
+        inputEl.value = currentVal;
+      }
+
+      inputEl.dispatchEvent(new InputEvent('input', { data: char, inputType: 'insertText', bubbles: true, composed: true }));
+      inputEl.dispatchEvent(
+        new KeyboardEvent('keyup', { key: char, code: `Key${char.toUpperCase()}`, bubbles: true, composed: true })
+      );
+
+      // 8-18ms micro-jitter
+      await new Promise((r) => setTimeout(r, 8 + Math.floor(Math.random() * 10)));
+    }
   } else {
-    inputEl.value = value;
+    // Fast prototype setter
+    const prototype = Object.getPrototypeOf(inputEl);
+    const nativeSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+    if (nativeSetter) {
+      nativeSetter.call(inputEl, value);
+    } else {
+      inputEl.value = value;
+    }
+    inputEl.dispatchEvent(new InputEvent('input', { data: value, inputType: 'insertText', bubbles: true, composed: true }));
   }
 
-  inputEl.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
   inputEl.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
-  inputEl.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, composed: true, key: 'a' }));
-  inputEl.blur();
+  inputEl.dispatchEvent(new Event('blur', { bubbles: true, composed: true }));
 }
 
 /**
- * Simulates selection on a <select> dropdown element or custom trigger.
+ * Simulates selection on a <select> dropdown element or custom comboboxes (React-Select, Radix, Tailwind UI, MUI).
  */
-export function simulateSelect(element: HTMLElement, value: string) {
+export async function simulateSelect(element: HTMLElement, value: string) {
   element.focus();
+  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
   const valStr = String(value).trim().toLowerCase();
 
   if (element.tagName.toLowerCase() === 'select') {
@@ -211,8 +287,21 @@ export function simulateSelect(element: HTMLElement, value: string) {
     selectEl.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
     selectEl.blur();
   } else {
-    // Custom dropdown trigger
+    // Custom dropdown trigger (Click to open popup, then click matching option)
     element.click();
+    await new Promise((r) => setTimeout(r, 200));
+
+    // Try finding option inside opened listbox
+    const optionEl = findElementWithFallbacks('text', value, [
+      `//li[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${valStr}')]`,
+      `//div[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${valStr}')]`,
+      `[role="option"]:has-text("${value}")`,
+      `[role="menuitem"]:has-text("${value}")`
+    ]);
+
+    if (optionEl) {
+      optionEl.click();
+    }
   }
 }
 

@@ -16,6 +16,10 @@ export const defaultSettings: AutomationSettings = {
   stopOnError: false,
   highlightElements: true,
   theme: 'light',
+  humanizeTyping: true,
+  randomDelayJitterMs: 250,
+  pauseBeforeSubmit: false,
+  deepShadowDomSupport: true,
 };
 
 export const initialMockConfigs: TargetConfig[] = [

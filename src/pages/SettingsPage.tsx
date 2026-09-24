@@ -75,11 +75,78 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSaveSett
           </div>
         </div>
 
+        {/* Mode Ketahanan Web Ketat & Anti-Bot */}
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+              <Shield className="h-3.5 w-3.5 text-emerald-500" />
+              Ketahanan Web Ketat & Anti-Bot Engine
+            </h3>
+            <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+              Enterprise Ready
+            </span>
+          </div>
+
+          <div className="space-y-3 text-xs">
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.humanizeTyping}
+                onChange={(e) => setFormData({ ...formData, humanizeTyping: e.target.checked })}
+                className="mt-0.5 rounded border-gray-300 text-sky-500 focus:ring-sky-400"
+              />
+              <div>
+                <span className="font-semibold text-gray-800 dark:text-gray-200 block">
+                  Simulasi Ketik Manusia (Human Keystroke Simulation)
+                </span>
+                <span className="text-[11px] text-gray-500 block">
+                  Mengirimkan urutan event keyboard nyata (`keydown`, `keypress`, `beforeinput`, `keyup`) dengan jeda mikro antar karakter untuk melewati validasi input mask ketat.
+                </span>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.deepShadowDomSupport}
+                onChange={(e) => setFormData({ ...formData, deepShadowDomSupport: e.target.checked })}
+                className="mt-0.5 rounded border-gray-300 text-sky-500 focus:ring-sky-400"
+              />
+              <div>
+                <span className="font-semibold text-gray-800 dark:text-gray-200 block">
+                  Pencarian Elemen Mendalam (Deep Shadow DOM & Web Components)
+                </span>
+                <span className="text-[11px] text-gray-500 block">
+                  Menembus Open Shadow Root pada framework modern (Salesforce, SAP, ServiceNow, LitElement).
+                </span>
+              </div>
+            </label>
+
+            <div>
+              <label className="block text-gray-700 dark:text-gray-300 font-medium mb-1">
+                Jeda Acak (Random Jitter Anti-Rate Limit) (ms)
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="2000"
+                step="50"
+                value={formData.randomDelayJitterMs}
+                onChange={(e) =>
+                  setFormData({ ...formData, randomDelayJitterMs: parseInt(e.target.value, 10) || 0 })
+                }
+                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 text-xs text-gray-900 dark:text-white"
+              />
+              <span className="text-[10px] text-gray-400">Variasi jeda acak antar field untuk memecah pola otomatisasi kaku (menghindari deteksi bot WAF / Cloudflare).</span>
+            </div>
+          </div>
+        </div>
+
         {/* Error & Visual Preferences */}
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-xs space-y-3">
           <h3 className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
             <Shield className="h-3.5 w-3.5 text-sky-500" />
-            Penanganan Error & Visual
+            Preferensi Eksekusi
           </h3>
 
           <div className="space-y-2.5 text-xs">

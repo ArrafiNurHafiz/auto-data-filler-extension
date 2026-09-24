@@ -147,6 +147,8 @@ export const RunnerPage: React.FC<RunnerPageProps> = ({
         timeoutMs: settings.timeoutElementMs,
         highlight: settings.highlightElements,
         defaultDelayMs: settings.defaultDelayMs,
+        humanizeTyping: settings.humanizeTyping !== false,
+        randomDelayJitterMs: settings.randomDelayJitterMs ?? 250,
       },
     };
 

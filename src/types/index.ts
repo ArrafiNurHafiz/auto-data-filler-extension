@@ -92,4 +92,9 @@ export interface AutomationSettings {
   stopOnError: boolean;
   highlightElements: boolean;
   theme: 'light' | 'dark' | 'system';
+  // Strict Web Security & Anti-Bot options
+  humanizeTyping: boolean; // Simulates human keystroke events with micro-jitter
+  randomDelayJitterMs: number; // Adds random delay variation to bypass bot rate-limit detection
+  pauseBeforeSubmit: boolean; // Pauses before submitting for manual CAPTCHA/2FA verification
+  deepShadowDomSupport: boolean; // Enables deep recursive traversal into Open Shadow DOM
 }

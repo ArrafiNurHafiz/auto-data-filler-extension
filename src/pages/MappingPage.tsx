@@ -201,6 +201,59 @@ export const MappingPage: React.FC<MappingPageProps> = ({
     setMappings(mappings.map((m) => (m.id === id ? { ...m, ...updates } : m)));
   };
 
+  const [testingAll, setTestingAll] = useState(false);
+  const [fieldTestResults, setFieldTestResults] = useState<Record<string, boolean>>({});
+
+  const testAllMappings = async () => {
+    if (mappings.length === 0) return;
+    setTestingAll(true);
+    setFieldTestResults({});
+
+    if (typeof chrome === 'undefined' || !chrome.tabs) {
+      const mockRes: Record<string, boolean> = {};
+      mappings.forEach((m) => {
+        mockRes[m.id] = true;
+      });
+      setFieldTestResults(mockRes);
+      setTestingAll(false);
+      return;
+    }
+
+    try {
+      const tabs = await new Promise<chrome.tabs.Tab[]>((resolve) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (t) => resolve(t || []));
+      });
+      const activeTab = tabs?.[0];
+      if (!activeTab?.id) {
+        alert('Tidak menemukan tab browser aktif.');
+        setTestingAll(false);
+        return;
+      }
+
+      const resultsMap: Record<string, boolean> = {};
+      for (const m of mappings) {
+        if (!m.primarySelector) {
+          resultsMap[m.id] = false;
+          continue;
+        }
+        try {
+          const res = await sendMessageToTab<{ success: boolean }>(activeTab.id, {
+            type: 'HIGHLIGHT_ELEMENT',
+            payload: { selectorType: m.selectorType, selectorValue: m.primarySelector },
+          });
+          resultsMap[m.id] = !!res?.success;
+        } catch {
+          resultsMap[m.id] = false;
+        }
+      }
+      setFieldTestResults(resultsMap);
+    } catch (err: any) {
+      alert(`Gagal mengetes elemen: ${err.message}`);
+    } finally {
+      setTestingAll(false);
+    }
+  };
+
   const autoGenerateMappings = () => {
     const generated: FieldMapping[] = excelHeaders.map((header, idx) => {
       const lower = header.toLowerCase();
@@ -263,20 +316,36 @@ export const MappingPage: React.FC<MappingPageProps> = ({
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-800 pb-3">
         <div>
-          <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Layers className="h-4 w-4 text-sky-500" />
-            Mapping Kolom Excel ke Elemen Web
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Layers className="h-4 w-4 text-sky-500" />
+              Mapping Kolom Excel ke Form Web
+            </h2>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-semibold">
+              {mappings.length} Field
+            </span>
+          </div>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Target Konfigurasi: <span className="font-semibold text-gray-800 dark:text-gray-200">{activeConfig.name}</span>
+            Target: <span className="font-semibold text-gray-800 dark:text-gray-200">{activeConfig.name}</span>
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {mappings.length > 0 && (
+            <button
+              onClick={testAllMappings}
+              disabled={testingAll}
+              className="px-2.5 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              {testingAll ? 'Mengecek Tab...' : 'Tes Semua Elemen'}
+            </button>
+          )}
+
           {excelHeaders.length > 0 && (
             <button
               onClick={autoGenerateMappings}
-              className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+              className="px-2.5 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Auto-Map Cerdas
@@ -285,7 +354,7 @@ export const MappingPage: React.FC<MappingPageProps> = ({
 
           <button
             onClick={addMappingRow}
-            className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+            className="px-2.5 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />
             Tambah Field
@@ -296,7 +365,7 @@ export const MappingPage: React.FC<MappingPageProps> = ({
             className="px-3.5 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
           >
             <Save className="h-3.5 w-3.5" />
-            {savedSuccess ? 'Tersimpan!' : 'Simpan Mapping'}
+            {savedSuccess ? 'Tersimpan!' : 'Simpan'}
           </button>
         </div>
       </div>
@@ -444,9 +513,22 @@ export const MappingPage: React.FC<MappingPageProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-12 gap-2 text-xs pt-1 border-t border-gray-100 dark:border-gray-800/60">
                 <div className="md:col-span-7">
                   <div className="flex items-center justify-between mb-0.5">
-                    <label className="block text-[10px] font-semibold text-gray-500">
-                      Primary DOM Selector
-                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <label className="block text-[10px] font-semibold text-gray-500">
+                        Primary DOM Selector
+                      </label>
+                      {fieldTestResults[field.id] !== undefined && (
+                        <span
+                          className={`text-[9px] px-1.5 py-0.2 rounded font-semibold ${
+                            fieldTestResults[field.id]
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                              : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
+                          }`}
+                        >
+                          {fieldTestResults[field.id] ? '✓ Ditemukan' : '✗ Belum Ditemukan'}
+                        </span>
+                      )}
+                    </div>
                     <button
                       onClick={() => testHighlightElement(field.selectorType, field.primarySelector, field.id)}
                       className="text-[10px] text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-0.5 font-medium"

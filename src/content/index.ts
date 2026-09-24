@@ -1,7 +1,6 @@
 import { TargetConfig, FieldMapping, PickedElementInfo } from '../types';
 import {
   findElement,
-  findElementWithFallbacks,
   waitForElement,
   simulateInput,
   simulateSelect,
@@ -131,7 +130,13 @@ export function stopElementPicker() {
 export async function executeFieldAction(
   mapping: FieldMapping,
   rawValue: any,
-  settings: { timeoutMs: number; highlight: boolean; defaultDelayMs: number }
+  settings: {
+    timeoutMs: number;
+    highlight: boolean;
+    defaultDelayMs: number;
+    humanizeTyping?: boolean;
+    randomDelayJitterMs?: number;
+  }
 ) {
   const value = rawValue !== undefined && rawValue !== null ? String(rawValue).trim() : (mapping.defaultValue || '');
 
@@ -158,22 +163,16 @@ export async function executeFieldAction(
 
     switch (mapping.actionType) {
       case 'type': {
-        simulateInput(el, value, mapping.clearBeforeType !== false);
+        await simulateInput(
+          el,
+          value,
+          mapping.clearBeforeType !== false,
+          settings.humanizeTyping !== false
+        );
         break;
       }
       case 'select': {
-        if (el.tagName.toLowerCase() === 'select') {
-          simulateSelect(el, value);
-        } else {
-          simulateSelect(el, value);
-          await new Promise((r) => setTimeout(r, 200));
-          const optionEl = findElementWithFallbacks('text', value, [
-            `//li[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${value.toLowerCase()}')]`,
-            `//div[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${value.toLowerCase()}')]`,
-            `[role="option"]:has-text("${value}")`
-          ]);
-          if (optionEl) optionEl.click();
-        }
+        await simulateSelect(el, value);
         break;
       }
       case 'checkbox': {
@@ -199,7 +198,7 @@ export async function executeFieldAction(
         break;
       }
       default: {
-        simulateInput(el, value);
+        await simulateInput(el, value, true, settings.humanizeTyping !== false);
       }
     }
 
@@ -219,7 +218,13 @@ export async function executeFieldAction(
 export async function processRowOnPage(
   row: Record<string, any>,
   config: TargetConfig,
-  settings: { timeoutMs: number; highlight: boolean; defaultDelayMs: number }
+  settings: {
+    timeoutMs: number;
+    highlight: boolean;
+    defaultDelayMs: number;
+    humanizeTyping?: boolean;
+    randomDelayJitterMs?: number;
+  }
 ) {
   if (!config.mappings || config.mappings.length === 0) {
     return {
@@ -241,8 +246,12 @@ export async function processRowOnPage(
     if (!res.success) {
       return res;
     }
-    if (settings.defaultDelayMs > 0) {
-      await new Promise((r) => setTimeout(r, settings.defaultDelayMs));
+
+    // Jitter delay between fields to avoid bot detection
+    const jitter = settings.randomDelayJitterMs ? Math.floor(Math.random() * settings.randomDelayJitterMs) : 0;
+    const totalDelay = (settings.defaultDelayMs || 0) + jitter;
+    if (totalDelay > 0) {
+      await new Promise((r) => setTimeout(r, totalDelay));
     }
   }
 
