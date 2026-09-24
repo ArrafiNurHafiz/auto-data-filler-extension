@@ -312,60 +312,60 @@ export const MappingPage: React.FC<MappingPageProps> = ({
   };
 
   return (
-    <div className="p-4 space-y-4 max-w-5xl mx-auto">
+    <div className="p-3 space-y-3 max-w-5xl mx-auto w-full">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-800 pb-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Layers className="h-4 w-4 text-sky-500" />
-              Mapping Kolom Excel ke Form Web
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-800 pb-2.5">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5 truncate">
+              <Layers className="h-3.5 w-3.5 text-sky-500 shrink-0" />
+              Mapping Form Web
             </h2>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-semibold">
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-semibold shrink-0">
               {mappings.length} Field
             </span>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Target: <span className="font-semibold text-gray-800 dark:text-gray-200">{activeConfig.name}</span>
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+            Preset: <span className="font-semibold text-gray-800 dark:text-gray-200">{activeConfig.name}</span>
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex items-center gap-1 flex-wrap">
           {mappings.length > 0 && (
             <button
               onClick={testAllMappings}
               disabled={testingAll}
-              className="px-2.5 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+              className="px-2 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 rounded-md text-[11px] font-semibold flex items-center gap-1 transition-colors"
             >
-              <Eye className="h-3.5 w-3.5" />
-              {testingAll ? 'Mengecek Tab...' : 'Tes Semua Elemen'}
+              <Eye className="h-3 w-3" />
+              <span>{testingAll ? 'Cek Tab...' : 'Uji Semua'}</span>
             </button>
           )}
 
           {excelHeaders.length > 0 && (
             <button
               onClick={autoGenerateMappings}
-              className="px-2.5 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+              className="px-2 py-1 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 rounded-md text-[11px] font-semibold flex items-center gap-1 transition-colors"
             >
-              <Sparkles className="h-3.5 w-3.5" />
-              Auto-Map Cerdas
+              <Sparkles className="h-3 w-3" />
+              <span>Auto-Map</span>
             </button>
           )}
 
           <button
             onClick={addMappingRow}
-            className="px-2.5 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+            className="px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md text-[11px] font-semibold flex items-center gap-1 transition-colors"
           >
-            <Plus className="h-3.5 w-3.5" />
-            Tambah Field
+            <Plus className="h-3 w-3" />
+            <span>Tambah</span>
           </button>
 
           <button
             onClick={handleSave}
-            className="px-3.5 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+            className="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded-md text-[11px] font-semibold flex items-center gap-1 shadow-xs transition-colors"
           >
-            <Save className="h-3.5 w-3.5" />
-            {savedSuccess ? 'Tersimpan!' : 'Simpan'}
+            <Save className="h-3 w-3" />
+            <span>{savedSuccess ? 'Tersimpan!' : 'Simpan'}</span>
           </button>
         </div>
       </div>

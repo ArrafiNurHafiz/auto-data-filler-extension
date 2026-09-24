@@ -62,21 +62,21 @@ export const UploadPage: React.FC<UploadPageProps> = ({ data, onDataParsed, onGo
   };
 
   return (
-    <div className="p-4 space-y-4 max-w-2xl mx-auto">
+    <div className="p-3 space-y-3 max-w-2xl mx-auto w-full">
       {/* Page Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h2 className="text-sm font-bold text-gray-900 dark:text-white">Upload Data Spreadsheet</h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            File Excel / CSV yang baris datanya akan diinput ke form web.
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h2 className="text-xs font-bold text-gray-900 dark:text-white truncate">Upload Data Spreadsheet</h2>
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+            File Excel / CSV untuk diinput ke form web.
           </p>
         </div>
         <button
           onClick={loadDemoData}
-          className="shrink-0 text-xs text-sky-600 dark:text-sky-400 font-medium flex items-center gap-1.5 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 px-2.5 py-1.5 rounded-lg border border-sky-200 dark:border-sky-800 transition-colors"
+          className="shrink-0 text-[11px] text-sky-600 dark:text-sky-400 font-semibold flex items-center gap-1 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 px-2 py-1 rounded-md border border-sky-200 dark:border-sky-800 transition-colors"
         >
           <RefreshCw className="h-3 w-3" />
-          <span>Contoh Data</span>
+          <span>Data Contoh</span>
         </button>
       </div>
 

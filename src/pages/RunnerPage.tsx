@@ -321,85 +321,95 @@ export const RunnerPage: React.FC<RunnerPageProps> = ({
   }
 
   return (
-    <div className="p-4 space-y-4 max-w-5xl mx-auto">
+    <div className="p-3 space-y-3 max-w-5xl mx-auto w-full">
       {/* Header & Controls */}
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-xs space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <h2 className="text-base font-bold text-gray-900 dark:text-white">Automation Runner</h2>
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-3 shadow-xs space-y-2.5">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <h2 className="text-xs font-bold text-gray-900 dark:text-white truncate">Runner</h2>
               {configs && configs.length > 1 && onSelectConfig ? (
                 <select
                   value={config.id}
                   onChange={(e) => onSelectConfig(e.target.value)}
-                  className="text-xs px-2 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 font-semibold border border-sky-200 dark:border-sky-800"
+                  className="text-[11px] px-1.5 py-0.5 rounded bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 font-semibold border border-sky-200 dark:border-sky-800 max-w-[140px] truncate"
                 >
                   {configs.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name} ({c.mappings.length} field)
+                      {c.name} ({c.mappings.length}f)
                     </option>
                   ))}
                 </select>
               ) : (
-                <span className="text-xs px-2 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 font-semibold border border-sky-200 dark:border-sky-800">
-                  {config.name} ({config.mappings.length} field)
+                <span className="text-[11px] px-1.5 py-0.2 rounded bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 font-semibold border border-sky-200 dark:border-sky-800 truncate">
+                  {config.name}
                 </span>
               )}
             </div>
 
-            {/* Target Tab Selector */}
-            <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-              <span>Target Tab:</span>
-              {availableTabs.length > 1 ? (
-                <select
-                  value={targetTabId || ''}
-                  onChange={(e) => {
-                    const id = Number(e.target.value);
-                    setTargetTabId(id);
-                    const selected = availableTabs.find((t) => t.id === id);
-                    if (selected) setActiveTabUrl(selected.url);
-                  }}
-                  className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1 text-xs font-mono max-w-xs truncate text-gray-900 dark:text-white"
-                >
-                  {availableTabs.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.title} ({t.url.slice(0, 45)}...)
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <span className="font-mono text-gray-800 dark:text-gray-200 max-w-xs truncate">
-                  {activeTabUrl || 'Tab Aktif'}
-                </span>
-              )}
-              <button
-                onClick={loadOpenTabs}
-                className="text-[10px] text-sky-600 dark:text-sky-400 hover:underline ml-1"
-                title="Refresh daftar tab terbuka"
-              >
-                (Refresh Tab)
-              </button>
-            </div>
+            <button
+              onClick={handleExport}
+              className="px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md text-[11px] font-semibold flex items-center gap-1 transition-colors shrink-0"
+              title="Export hasil eksekusi ke Excel"
+            >
+              <Download className="h-3 w-3" />
+              <span>Export</span>
+            </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Target Tab Selector */}
+          <div className="flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/40 p-1.5 rounded-lg border border-gray-100 dark:border-gray-800/60">
+            <span className="shrink-0 font-medium">Tab:</span>
+            {availableTabs.length > 1 ? (
+              <select
+                value={targetTabId || ''}
+                onChange={(e) => {
+                  const id = Number(e.target.value);
+                  setTargetTabId(id);
+                  const selected = availableTabs.find((t) => t.id === id);
+                  if (selected) setActiveTabUrl(selected.url);
+                }}
+                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-1.5 py-0.5 text-[11px] font-mono flex-1 truncate text-gray-900 dark:text-white min-w-0"
+              >
+                {availableTabs.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="font-mono text-gray-800 dark:text-gray-200 flex-1 truncate text-[11px]">
+                {activeTabUrl || 'Tab Aktif'}
+              </span>
+            )}
+            <button
+              onClick={loadOpenTabs}
+              className="text-[10px] text-sky-600 dark:text-sky-400 hover:underline shrink-0 font-medium"
+              title="Refresh daftar tab terbuka"
+            >
+              Refresh
+            </button>
+          </div>
+
+          {/* Control Buttons */}
+          <div className="flex items-center gap-1.5 pt-0.5">
             {!isRunning ? (
               <>
                 <button
                   onClick={() => setShowConfirmModal(true)}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+                  className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-all"
                 >
                   <Play className="h-3.5 w-3.5 fill-current" />
-                  Mulai Otomatisasi
+                  <span>Mulai Eksekusi</span>
                 </button>
                 {failedCount > 0 && (
                   <button
                     onClick={() => startAutomation(true)}
-                    className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+                    className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-xs transition-colors shrink-0"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
-                    Retry ({failedCount}) Gagal
+                    <span>Retry ({failedCount})</span>
                   </button>
                 )}
               </>
@@ -407,28 +417,20 @@ export const RunnerPage: React.FC<RunnerPageProps> = ({
               <>
                 <button
                   onClick={handleTogglePause}
-                  className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+                  className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-colors"
                 >
                   {isPaused ? <Play className="h-3.5 w-3.5 fill-current" /> : <Pause className="h-3.5 w-3.5 fill-current" />}
-                  {isPaused ? 'Resume' : 'Pause'}
+                  <span>{isPaused ? 'Lanjut' : 'Jeda'}</span>
                 </button>
                 <button
                   onClick={handleStop}
-                  className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs transition-colors shrink-0"
                 >
                   <Square className="h-3.5 w-3.5 fill-current" />
-                  Stop
+                  <span>Stop</span>
                 </button>
               </>
             )}
-
-            <button
-              onClick={handleExport}
-              className="px-3.5 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
-            >
-              <Download className="h-3.5 w-3.5" />
-              Export Hasil
-            </button>
           </div>
         </div>
 
