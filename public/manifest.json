@@ -15,11 +15,11 @@
     "file://*/*"
   ],
   "action": {
-    "default_popup": "index.html",
+    "default_popup": "index.html?view=popup",
     "default_title": "AutoDataFiller"
   },
   "side_panel": {
-    "default_path": "index.html"
+    "default_path": "index.html?view=sidepanel"
   },
   "background": {
     "service_worker": "background.js",

@@ -18,6 +18,26 @@ export const App: React.FC = () => {
   const [settings, setSettings] = useState<AutomationSettings>(defaultSettings);
 
   useEffect(() => {
+    // Detect and apply view mode (popup, sidepanel, tab)
+    const updateViewMode = () => {
+      const params = new URLSearchParams(window.location.search);
+      const view = params.get('view');
+      const isSidePanel = view === 'sidepanel' || (window.innerHeight > 650 && window.innerWidth <= 450);
+      const isTab = view === 'tab' || window.innerWidth > 600;
+
+      document.body.classList.remove('mode-sidepanel', 'mode-tab', 'mode-popup');
+      if (isSidePanel) {
+        document.body.classList.add('mode-sidepanel');
+      } else if (isTab) {
+        document.body.classList.add('mode-tab');
+      } else {
+        document.body.classList.add('mode-popup');
+      }
+    };
+
+    updateViewMode();
+    window.addEventListener('resize', updateViewMode);
+
     // Load persisted configs, settings & sheetData
     StorageService.getConfigs().then((loaded) => {
       if (loaded.length > 0) {
@@ -36,6 +56,8 @@ export const App: React.FC = () => {
         setSheetData(loadedSheet);
       }
     });
+
+    return () => window.removeEventListener('resize', updateViewMode);
   }, []);
 
   const applyTheme = (theme: 'light' | 'dark' | 'system') => {

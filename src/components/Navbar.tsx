@@ -28,9 +28,9 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, dataLoad
 
   const handleOpenFullTab = () => {
     if (typeof chrome !== 'undefined' && chrome.tabs) {
-      chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
+      chrome.tabs.create({ url: chrome.runtime.getURL('index.html?view=tab') });
     } else {
-      window.open(window.location.href, '_blank');
+      window.open(window.location.href + '?view=tab', '_blank');
     }
   };
 
