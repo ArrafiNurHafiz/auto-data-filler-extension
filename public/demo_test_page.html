@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Demo Form Target - Uji Coba AutoDataFiller</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; padding: 30px; display: flex; justify-content: center; }
+    .card { background: white; border-radius: 12px; padding: 24px; max-width: 500px; width: 100%; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    h2 { margin-top: 0; color: #0f172a; font-size: 18px; }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #475569; }
+    input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; box-sizing: border-box; }
+    button { background: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; }
+    button:hover { background: #0369a1; }
+    .alert-success { display: none; background: #dcfce7; color: #15803d; padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+    .log-box { margin-top: 20px; font-size: 11px; background: #0f172a; color: #38bdf8; padding: 10px; border-radius: 6px; max-height: 150px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Demo Dashboard Input Data</h2>
+    <div id="statusAlert" class="alert-success">✓ Data berhasil disimpan!</div>
+
+    <form id="demoForm" onsubmit="event.preventDefault(); submitData();">
+      <div class="form-group">
+        <label for="nama">Nama Lengkap</label>
+        <input type="text" id="nama" name="nama" placeholder="Masukkan nama..." required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Alamat Email</label>
+        <input type="email" id="email" name="email" placeholder="Masukkan email..." required>
+      </div>
+
+      <div class="form-group">
+        <label for="telepon">Nomor Telepon / WA</label>
+        <input type="tel" id="telepon" name="telepon" placeholder="08xxxxxxxxxx">
+      </div>
+
+      <div class="form-group">
+        <label for="kategori">Kategori / Divisi</label>
+        <select id="kategori" name="kategori">
+          <option value="">-- Pilih Kategori --</option>
+          <option value="Teknologi">Teknologi</option>
+          <option value="Pemasaran">Pemasaran</option>
+          <option value="Keuangan">Keuangan</option>
+          <option value="Operasional">Operasional</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="alamat">Alamat</label>
+        <textarea id="alamat" name="alamat" rows="2" placeholder="Alamat lengkap..."></textarea>
+      </div>
+
+      <button type="submit" id="btnSubmit" class="btn-submit">Kirim Data Form</button>
+    </form>
+
+    <div class="log-box" id="logBox">Riwayat submit di halaman ini:</div>
+  </div>
+
+  <script>
+    function submitData() {
+      const nama = document.getElementById('nama').value;
+      const email = document.getElementById('email').value;
+      const kat = document.getElementById('kategori').value;
+
+      const alertEl = document.getElementById('statusAlert');
+      alertEl.style.display = 'block';
+      alertEl.textContent = `✓ Sukses menyimpan: ${nama} (${email})`;
+
+      const log = document.getElementById('logBox');
+      const entry = document.createElement('div');
+      entry.textContent = `[${new Date().toLocaleTimeString()}] Saved: ${nama} - ${kat}`;
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+
+      setTimeout(() => {
+        alertEl.style.display = 'none';
+        document.getElementById('demoForm').reset();
+      }, 800);
+    }
+  </script>
+</body>
+</html>
