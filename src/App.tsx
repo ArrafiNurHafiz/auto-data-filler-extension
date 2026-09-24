@@ -93,7 +93,7 @@ export const App: React.FC = () => {
   const currentConfig = configs.find((c) => c.id === activeConfigId) || configs[0];
 
   return (
-    <div className="w-full min-w-[360px] sm:w-[780px] max-w-full h-screen sm:max-h-[600px] sm:min-h-[560px] flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased overflow-hidden">
+    <div className="w-[460px] sm:w-[580px] md:w-[780px] max-w-full h-[590px] max-h-[600px] flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased overflow-hidden mx-auto shadow-2xl">
       {/* Top Navigation */}
       <Navbar
         activeTab={activeTab}
