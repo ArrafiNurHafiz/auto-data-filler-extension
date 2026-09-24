@@ -10,20 +10,21 @@
 html, body {
   margin: 0;
   padding: 0;
-  width: 440px;
-  height: 580px;
-  max-height: 600px;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  max-width: 100%;
   overflow-x: hidden;
   background-color: #0f172a;
 }
 
-body.mode-sidepanel,
-body.mode-tab {
-  width: 100% !important;
-  height: 100vh !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
+/* Only when running inside Chrome action popup */
+html.mode-popup, body.mode-popup {
+  width: 360px !important;
+  min-width: 360px !important;
+  max-width: 380px !important;
+  height: 580px !important;
+  min-height: 580px !important;
 }
 
 #root {
@@ -32,7 +33,7 @@ body.mode-tab {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 /* Custom scrollbars */

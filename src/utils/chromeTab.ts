@@ -20,7 +20,30 @@ export function isInjectableUrl(url?: string): boolean {
 }
 
 /**
- * Sends a message to a tab, automatically injecting content.js if not already present.
+ * Gets the active valid web tab, ignoring internal chrome:// or extension pages.
+ */
+export async function getActiveWebTab(): Promise<chrome.tabs.Tab | null> {
+  if (typeof chrome === 'undefined' || !chrome.tabs) return null;
+
+  return new Promise((resolve) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const active = tabs?.[0];
+      if (active && active.url && isInjectableUrl(active.url)) {
+        resolve(active);
+        return;
+      }
+
+      // If current active tab is chrome://, find first valid web tab in current window
+      chrome.tabs.query({ currentWindow: true }, (allTabs) => {
+        const validTab = (allTabs || []).find((t) => t.url && isInjectableUrl(t.url));
+        resolve(validTab || active || null);
+      });
+    });
+  });
+}
+
+/**
+ * Sends a message to a tab, automatically injecting content.js with robust retries.
  */
 export async function sendMessageToTab<T = any>(tabId: number, message: any): Promise<T> {
   if (typeof chrome === 'undefined' || !chrome.tabs) {
@@ -36,12 +59,12 @@ export async function sendMessageToTab<T = any>(tabId: number, message: any): Pr
   });
 
   if (!tab) {
-    throw new Error('Tab target tidak ditemukan atau telah ditutup. Silakan pilih tab aktif.');
+    throw new Error('Tab target tidak ditemukan. Buka halaman website target terlebih dahulu.');
   }
 
   if (tab.url && !isInjectableUrl(tab.url)) {
     throw new Error(
-      'Ekstensi tidak dapat berjalan pada halaman internal browser (chrome://, Web Store, about:blank). Buka halaman website atau file form terlebih dahulu.'
+      `Halaman "${tab.title || tab.url}" diproteksi oleh browser (${tab.url.split('/')[0]}//). Silakan buka tab website form target.`
     );
   }
 
@@ -63,7 +86,7 @@ export async function sendMessageToTab<T = any>(tabId: number, message: any): Pr
     return firstAttempt.res as T;
   }
 
-  // 2. If receiving end does not exist, inject content.js dynamically and retry
+  // 2. If receiving end does not exist, inject content.js dynamically and retry with backoff
   const errStr = firstAttempt.error || '';
   if (
     errStr.includes('Receiving end does not exist') ||
@@ -77,23 +100,25 @@ export async function sendMessageToTab<T = any>(tabId: number, message: any): Pr
           files: ['content.js'],
         });
 
-        // Short pause to allow content script to register listeners
-        await new Promise((r) => setTimeout(r, 150));
-
-        const secondAttempt = await trySend();
-        if (secondAttempt.success) {
-          return secondAttempt.res as T;
+        // Retry with backoff (150ms, 300ms, 600ms)
+        const delays = [150, 300, 600];
+        for (const delay of delays) {
+          await new Promise((r) => setTimeout(r, delay));
+          const retryRes = await trySend();
+          if (retryRes.success) {
+            return retryRes.res as T;
+          }
         }
-        throw new Error(secondAttempt.error || 'Gagal berkomunikasi dengan halaman web.');
+        throw new Error('Content script berhasil diinjeksi namun belum merespons. Silakan refresh tab website.');
       }
     } catch (err: any) {
       const msg = err.message || String(err);
       if (msg.includes('Cannot access contents of url "file:') || msg.includes('file url access')) {
         throw new Error(
-          'Untuk menguji file lokal (file://), aktifkan opsi "Allow access to file URLs" di chrome://extensions > Details ekstensi ini. Atau buka via http://localhost:3456/demo_test_page.html'
+          'Untuk menguji file lokal (file://), aktifkan opsi "Allow access to file URLs" di chrome://extensions > Details AutoDataFiller. Atau gunakan http://localhost.'
         );
       }
-      throw new Error(`Gagal menginjeksi content script: ${msg}. Coba refresh halaman tab website target.`);
+      throw new Error(`Gagal menginjeksi ke tab web: ${msg}`);
     }
   }
 

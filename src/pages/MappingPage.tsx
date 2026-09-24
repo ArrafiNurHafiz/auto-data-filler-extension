@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TargetConfig, FieldMapping, SelectorType, ActionType, PickedElementInfo } from '../types';
 import { Plus, Trash2, Save, Sparkles, Layers, Crosshair, Eye, CheckCircle2, AlertCircle } from 'lucide-react';
-import { sendMessageToTab } from '../utils/chromeTab';
+import { sendMessageToTab, getActiveWebTab } from '../utils/chromeTab';
 
 interface MappingPageProps {
   excelHeaders: string[];
@@ -108,12 +108,9 @@ export const MappingPage: React.FC<MappingPageProps> = ({
     }
 
     try {
-      const tabs = await new Promise<chrome.tabs.Tab[]>((resolve) => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (t) => resolve(t || []));
-      });
-      const activeTab = tabs?.[0];
+      const activeTab = await getActiveWebTab();
       if (!activeTab?.id) {
-        alert('Tidak menemukan tab browser yang sedang aktif.');
+        alert('Tidak menemukan tab website target. Harap buka tab halaman form Anda.');
         setPickingFieldId(null);
         return;
       }
@@ -145,12 +142,9 @@ export const MappingPage: React.FC<MappingPageProps> = ({
     }
 
     try {
-      const tabs = await new Promise<chrome.tabs.Tab[]>((resolve) => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (t) => resolve(t || []));
-      });
-      const activeTab = tabs?.[0];
+      const activeTab = await getActiveWebTab();
       if (!activeTab?.id) {
-        setTestStatus({ id: testId, success: false, message: 'Tidak ada tab aktif.' });
+        setTestStatus({ id: testId, success: false, message: 'Tidak ada tab website aktif.' });
         return;
       }
 
@@ -220,12 +214,9 @@ export const MappingPage: React.FC<MappingPageProps> = ({
     }
 
     try {
-      const tabs = await new Promise<chrome.tabs.Tab[]>((resolve) => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (t) => resolve(t || []));
-      });
-      const activeTab = tabs?.[0];
+      const activeTab = await getActiveWebTab();
       if (!activeTab?.id) {
-        alert('Tidak menemukan tab browser aktif.');
+        alert('Tidak menemukan tab website target yang aktif.');
         setTestingAll(false);
         return;
       }
